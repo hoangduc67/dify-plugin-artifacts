@@ -1,5 +1,0 @@
-path: "/asset/<path:path>"
-method: "GET"
-extra:
-  python:
-    source: "endpoints/asset.py"

@@ -19,5 +19,4 @@ settings:
 endpoints:
   - endpoints/artifact.yaml
   - endpoints/chat.yaml
-  - endpoints/asset.yaml
 

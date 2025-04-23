@@ -653,7 +653,7 @@
                 conversation_id: conversationId
             };
             try {
-                const response = await fetch('/api/chat', {
+                const response = await fetch(window.location.pathname + 'api/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

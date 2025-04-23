@@ -27,6 +27,9 @@ This is a web-based chat interaction interface that can help you automatically r
 ### Changelog
 
 
+#### v0.0.3
+- Fixed issue with localhost not working in local Docker deployment
+
 #### v0.0.2
 - Added "New Chat" button
 - Added canvas rendering
