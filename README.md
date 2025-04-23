@@ -8,6 +8,8 @@ This is a web-based chat interaction interface that can help you automatically r
 
 ![](./_assets/001.jpg)
 
+![](./_assets/005.jpg)
+
 
 ### Usage Instructions
 
@@ -24,6 +26,11 @@ This is a web-based chat interaction interface that can help you automatically r
 
 ### Changelog
 
+
+#### v0.0.2
+- Added "New Chat" button
+- Added canvas rendering
+- Fixed output content truncation issues
 
 #### v0.0.1
 - Project initialization

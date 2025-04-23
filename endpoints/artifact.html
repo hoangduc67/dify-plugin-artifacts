@@ -56,6 +56,29 @@
             padding: 18px 24px 14px 24px;
             border-bottom: 1px solid #f0f0f4;
             letter-spacing: 0.3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #new-chat-btn {
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: #f0f4ff;
+            color: #2563eb;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        #new-chat-btn:hover {
+            background: #e0e7ff;
+        }
+        #new-chat-btn .material-icons {
+            font-size: 16px;
         }
         .chat-log {
             flex: 1;
@@ -122,13 +145,22 @@
             font-size: 18px;
         }
         .code-placeholder .material-icons.spinning {
-            animation: spin 2s infinite linear;
+            animation: spin 1s infinite linear;
         }
         @keyframes spin {
-            from {
+            0% {
                 transform: rotate(0deg);
             }
-            to {
+            25% {
+                transform: rotate(90deg);
+            }
+            50% {
+                transform: rotate(180deg);
+            }
+            75% {
+                transform: rotate(270deg);
+            }
+            100% {
                 transform: rotate(360deg);
             }
         }
@@ -270,7 +302,7 @@
         }
         .artifact-loading .material-icons {
             margin-right: 8px;
-            animation: spin 2s infinite linear;
+            animation: spin 1s infinite linear;
         }
         /* Markdown样式 */
         .message p {
@@ -422,7 +454,12 @@
 <body>
     <div class="main-container">
         <div class="chat-box">
-            <div class="chat-header">Artifacts</div>
+            <div class="chat-header">
+                <span>Artifacts</span>
+                <button id="new-chat-btn">
+                    <i class="material-icons">add</i>New chat
+                </button>
+            </div>
             <div class="chat-log" id="chat-log"></div>
             <div class="chat-input-row">
                 <input id="user-input" type="text" placeholder="Input..." autocomplete="off" />
@@ -450,11 +487,83 @@
         const artifactPreview = document.getElementById('artifact-preview');
         const tabCode = document.getElementById('tab-code');
         const tabPreview = document.getElementById('tab-preview');
+        const newChatBtn = document.getElementById('new-chat-btn');
         let conversationId = localStorage.getItem('conversation_id') || '';
         let lastArtifactHtml = '';
         let artifactGenerating = false;
         let artifactCodeBuffer = '';
         let artifactMessagePlaceholder = null;
+        
+    
+        function updateCodePlaceholder(botMessageContainer, contentBeforeCodeblock, isLoading = true) {
+            if (isLoading) {
+                if (artifactMessagePlaceholder) {
+                
+                    const beforeContent = botMessageContainer.querySelector('.content-before-code');
+                    if (beforeContent) {
+                        beforeContent.innerHTML = renderMarkdown(contentBeforeCodeblock);
+                    } else {
+                    
+                        const currentHTML = botMessageContainer.innerHTML;
+                    
+                        const placeholderDiv = botMessageContainer.querySelector('.code-placeholder');
+                        if (placeholderDiv) {
+                            botMessageContainer.innerHTML = `<div class="content-before-code">${renderMarkdown(contentBeforeCodeblock)}</div>`;
+                            botMessageContainer.appendChild(placeholderDiv);
+                        } else {
+                        
+                            botMessageContainer.innerHTML = `<div class="content-before-code">${renderMarkdown(contentBeforeCodeblock)}</div>` +
+                                `<div class='code-placeholder code-placeholder-loading'><i class="material-icons spinning">autorenew</i>CODING...</div>`;
+                            artifactMessagePlaceholder = botMessageContainer.querySelector('.code-placeholder');
+                        }
+                    }
+                } else {
+                
+                    botMessageContainer.innerHTML = `<div class="content-before-code">${renderMarkdown(contentBeforeCodeblock)}</div>` +
+                        `<div class='code-placeholder code-placeholder-loading'><i class="material-icons spinning">autorenew</i>CODING...</div>`;
+                    artifactMessagePlaceholder = botMessageContainer.querySelector('.code-placeholder');
+                }
+            } else {
+            
+            
+                const afterContent = botMessageContainer.querySelector('.content-after-code');
+                if (afterContent) {
+                    afterContent.remove();
+                }
+                
+            
+                const beforeContent = botMessageContainer.querySelector('.content-before-code');
+                if (beforeContent) {
+                    beforeContent.innerHTML = renderMarkdown(contentBeforeCodeblock);
+                } else {
+                
+                    const beforeDiv = document.createElement('div');
+                    beforeDiv.className = 'content-before-code';
+                    beforeDiv.innerHTML = renderMarkdown(contentBeforeCodeblock);
+                    botMessageContainer.prepend(beforeDiv);
+                }
+                
+            
+                const placeholder = botMessageContainer.querySelector('.code-placeholder');
+                if (placeholder) {
+                    placeholder.className = 'code-placeholder code-placeholder-completed';
+                    placeholder.innerHTML = '<i class="material-icons">check_circle</i>Code generation completed';
+                } else {
+                    const completeDiv = document.createElement('div');
+                    completeDiv.className = 'code-placeholder code-placeholder-completed';
+                    completeDiv.innerHTML = '<i class="material-icons">check_circle</i>Code generation completed';
+                    
+                
+                    const beforeContent = botMessageContainer.querySelector('.content-before-code');
+                    if (beforeContent) {
+                        beforeContent.after(completeDiv);
+                    } else {
+                        botMessageContainer.appendChild(completeDiv);
+                    }
+                }
+            }
+        }
+        
         marked.setOptions({
             gfm: true,
             breaks: true,
@@ -475,10 +584,35 @@
             tabCode.classList.remove('active');
             artifactCode.style.display = 'none';
             artifactPreview.style.display = '';
+            
             if (artifactGenerating) {
                 artifactPreview.innerHTML = `<div class='artifact-loading'><i class="material-icons">autorenew</i>CODING...</div>`;
             } else if (lastArtifactHtml) {
-                artifactPreview.innerHTML = lastArtifactHtml;
+                try {
+                    // 清空预览区域
+                    artifactPreview.innerHTML = '';
+                    
+                    // 创建一个blob URL
+                    const blob = new Blob([lastArtifactHtml], {type: 'text/html'});
+                    const blobUrl = URL.createObjectURL(blob);
+                    
+                    // 创建iframe并设置src为blob URL
+                    const iframe = document.createElement('iframe');
+                    iframe.style.width = '100%';
+                    iframe.style.height = '100%';
+                    iframe.style.border = 'none';
+                    iframe.src = blobUrl;
+                    
+                    // 添加iframe到预览区域
+                    artifactPreview.appendChild(iframe);
+                    
+                    // 在iframe加载完成后释放blob URL
+                    iframe.onload = function() {
+                        URL.revokeObjectURL(blobUrl);
+                    };
+                } catch (error) {
+                    artifactPreview.innerHTML = '无法预览内容: ' + error.message;
+                }
             } else {
                 artifactPreview.innerHTML = '';
             }
@@ -559,8 +693,7 @@
                                         artifactCodeBuffer = '';
                                         const codeStartIndex = accumulatedText.indexOf('```html');
                                         const contentBeforeCodeblock = accumulatedText.substring(0, codeStartIndex);
-                                        botMessageContainer.innerHTML = renderMarkdown(contentBeforeCodeblock) +
-                                            `<div class='code-placeholder code-placeholder-loading'><i class="material-icons spinning">autorenew</i>CODING...</div>`;
+                                        updateCodePlaceholder(botMessageContainer, contentBeforeCodeblock);
                                         artifactPane.classList.add('active');
                                         tabCode.classList.add('active');
                                         tabPreview.classList.remove('active');
@@ -581,24 +714,56 @@
                                         const codeEndIndex = accumulatedText.indexOf('```', codeStartIndex + 6) + 3;
                                         const contentBeforeCodeblock = accumulatedText.substring(0, codeStartIndex);
                                         let contentAfterCodeblock = accumulatedText.substring(codeEndIndex);
-                                        botMessageContainer.innerHTML = renderMarkdown(contentBeforeCodeblock) +
-                                            `<div class='code-placeholder code-placeholder-completed'><i class="material-icons">check_circle</i>Code generation completed</div>` +
-                                            renderMarkdown(contentAfterCodeblock);
+                                        
+                                        contentAfterCodeblock = contentAfterCodeblock.trim();
+                                        
+                                        updateCodePlaceholder(botMessageContainer, contentBeforeCodeblock, false);
+                                        if (contentAfterCodeblock) {
+                                            const afterContent = document.createElement('div');
+                                            afterContent.className = 'content-after-code';
+                                            afterContent.innerHTML = renderMarkdown(contentAfterCodeblock);
+                                            botMessageContainer.appendChild(afterContent);
+                                        }
+                                        
                                         artifactCode.textContent = artifactCodeBuffer;
                                         lastArtifactHtml = artifactCodeBuffer;
+                                        
+                                        // 预加载iframe以便立即渲染
+                                        if (tabPreview.classList.contains('active')) {
+                                            tabPreview.onclick();
+                                        }
                                     } else {
                                         const codeStartIndex = accumulatedText.indexOf('```html');
                                         if (codeStartIndex !== -1) {
-                                            artifactCodeBuffer = accumulatedText.substring(codeStartIndex + 7).replace(/^\s*\n/, '');
+                                            const partialCode = accumulatedText.substring(codeStartIndex + 7);
+                                            artifactCodeBuffer = partialCode.replace(/^\s*\n/, '');
                                             artifactCode.textContent = artifactCodeBuffer;
                                             const contentBeforeCodeblock = accumulatedText.substring(0, codeStartIndex);
-                                            botMessageContainer.innerHTML = renderMarkdown(contentBeforeCodeblock) +
-                                                `<div class='code-placeholder code-placeholder-loading'><i class="material-icons spinning">autorenew</i>CODING...</div>`;
-                                            artifactMessagePlaceholder = botMessageContainer.querySelector('.code-placeholder');
+                                            updateCodePlaceholder(botMessageContainer, contentBeforeCodeblock);
                                         }
                                     }
-                                } else if (!codeBlockStarted) {
-                                    botMessageContainer.innerHTML = renderMarkdown(accumulatedText);
+                                } else if (!codeBlockStarted || codeBlockEnded) {
+                                
+                                    if (codeBlockEnded) {
+                                    
+                                        const codeStartIndex = accumulatedText.indexOf('```html');
+                                        const codeEndIndex = accumulatedText.indexOf('```', codeStartIndex + 6) + 3;
+                                        const contentBeforeCodeblock = accumulatedText.substring(0, codeStartIndex);
+                                        let contentAfterCodeblock = accumulatedText.substring(codeEndIndex);
+                                        
+                                        contentAfterCodeblock = contentAfterCodeblock.trim();
+                                        
+                                        updateCodePlaceholder(botMessageContainer, contentBeforeCodeblock, false);
+                                        if (contentAfterCodeblock) {
+                                            const afterContent = document.createElement('div');
+                                            afterContent.className = 'content-after-code';
+                                            afterContent.innerHTML = renderMarkdown(contentAfterCodeblock);
+                                            botMessageContainer.appendChild(afterContent);
+                                        }
+                                    } else {
+                                    
+                                        botMessageContainer.innerHTML = renderMarkdown(accumulatedText);
+                                    }
                                 }
                             }
                             if (data.conversation_id) {
@@ -610,7 +775,24 @@
                     }
                 }
                 if (codeBlockEnded && lastArtifactHtml) {
+                
                     tabPreview.onclick();
+                    
+                
+                    const codeStartIndex = accumulatedText.indexOf('```html');
+                    const codeEndIndex = accumulatedText.indexOf('```', codeStartIndex + 6) + 3;
+                    const contentBeforeCodeblock = accumulatedText.substring(0, codeStartIndex);
+                    let contentAfterCodeblock = accumulatedText.substring(codeEndIndex);
+                    
+                    contentAfterCodeblock = contentAfterCodeblock.trim();
+                    
+                    updateCodePlaceholder(botMessageContainer, contentBeforeCodeblock, false);
+                    if (contentAfterCodeblock) {
+                        const afterContent = document.createElement('div');
+                        afterContent.className = 'content-after-code';
+                        afterContent.innerHTML = renderMarkdown(contentAfterCodeblock);
+                        botMessageContainer.appendChild(afterContent);
+                    }
                 }
                 if (!codeBlockStarted) {
                     hideArtifact();
@@ -620,7 +802,29 @@
                 hideArtifact();
             }
         }
-        sendBtn.addEventListener('click', sendMessage);
+        function startNewConversation() {
+        
+            chatLog.innerHTML = '';
+            
+        
+            conversationId = '';
+            localStorage.removeItem('conversation_id');
+            
+        
+            hideArtifact();
+            globalAccumulatedText = '';
+            globalCodeBlockStarted = false;
+            globalCodeBlockEnded = false;
+            
+        
+            appendMessage('New Chat', 'bot');
+        }
+        
+    
+        newChatBtn.addEventListener('click', startNewConversation);
+        
+    
+        sendBtn.addEventListener('click', () => sendMessage());
         userInput.addEventListener('keypress', function (event) {
             if (event.key === 'Enter') sendMessage();
         });

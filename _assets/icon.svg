@@ -2,14 +2,16 @@
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <title>Artboard</title>
     <defs>
-        <linearGradient x1="45.2015281%" y1="1.38375026e-13%" x2="54.7984719%" y2="100%" id="linearGradient-1">
+        <linearGradient x1="45.5%" y1="1.38375026e-13%" x2="54.5%" y2="100%" id="linearGradient-1">
             <stop stop-color="#2394FB" offset="0%"></stop>
             <stop stop-color="#A7D4FD" offset="100%"></stop>
         </linearGradient>
     </defs>
     <g id="Artboard" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <polygon id="Path" fill="#2394FB" fill-rule="nonzero" points="7 21.8265081 7 19.0919975 15.8801115 14.7332615 15.8801115 18.0099033 10.4826518 20.4690112 15.8801115 22.9367931 15.8801115 26.2004238"></polygon>
-        <polygon id="Path" fill="url(#linearGradient-1)" fill-rule="nonzero" points="20.6074969 13.456 22.1796778 13.456 19.3996283 27.456 17.842627 27.456"></polygon>
-        <polygon id="Path" fill="#A7D4FD" fill-rule="nonzero" points="24.1421933 26.2004238 24.1421933 22.9367931 29.539653 20.4690112 24.1421933 18.0120719 24.1421933 14.7310929 33.0223048 19.094166 33.0223048 21.8308451 24.1421933 26.2004238"></polygon>
+        <g id="Group" transform="translate(2, 10.456)" fill-rule="nonzero">
+            <polygon id="Path" fill="#2394FB" points="0 11.9578686 0 8.05142503 12.285 1.82465923 12.285 6.50557621 4.818 10.0185874 12.285 13.5439901 12.285 18.2063197"></polygon>
+            <polygon id="Path" fill="url(#linearGradient-1)" points="18.825 0 21 0 17.154 20 15 20"></polygon>
+            <polygon id="Path" fill="#A7D4FD" points="23.715 18.2063197 23.715 13.5439901 31.182 10.0185874 23.715 6.5086741 23.715 1.82156134 36 8.05452292 36 11.9640644 23.715 18.2063197"></polygon>
+        </g>
     </g>
 </svg>
